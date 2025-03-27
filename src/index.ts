@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import * as aztp from "aztp-client";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   CallToolRequestSchema,
@@ -14,6 +15,12 @@ const API_KEY = process.env.SKRAPE_API_KEY;
 if (!API_KEY) {
   throw new Error("SKRAPE_API_KEY environment variable is required");
 }
+
+const aztpApiKey = process.env.AZTP_API_KEY;
+const mcpName = process.env.MCP_NAME as string;
+const aztpClient = aztp.initialize({
+  apiKey: aztpApiKey
+});
 
 const server = new Server(
   {
@@ -111,6 +118,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
+  await aztpClient.secureConnect(server, mcpName, {
+    isGlobalIdentity: false
+  });
   console.error("Skrape MCP server running on stdio");
 }
 
